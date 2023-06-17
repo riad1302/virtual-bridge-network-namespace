@@ -45,6 +45,7 @@ We will create a virtual network bridge.Three network namespaces and one virtual
 
 ## Enable all kinds of virtual network devices
 
+    sudo ip link set virtual-bridge up
     sudo ip link set rveth-out up
     sudo ip link set gveth-out up
     sudo ip link set yveth-out up
@@ -87,11 +88,27 @@ virtual network stacks don’t have a default gateway, they can’t go to other 
 It is because the main host doesn’t forward the IP packages. Besides, the main host must translate the source addresses (Masquerade / SNAT)
 
     sudo iptables -t nat -A POSTROUTING -s 10.10.1.0/24 -j MASQUERADE
-    sysctl -w net.ipv4.ip_forward=1
+    
+    sudo sysctl -w net.ipv4.ip_forward=1
 
     sudo ip netns exec red ping 8.8.8.8
     
     64 bytes from 8.8.8.8: icmp_seq=1 ttl=61 time=53.0 ms
     64 bytes from 8.8.8.8: icmp_seq=2 ttl=61 time=34.9 ms
     64 bytes from 8.8.8.8: icmp_seq=3 ttl=61 time=35.0 ms
+
+## Remove network namespaces and virtual ethernets
+    sudo ip netns del red
+    sudo ip netns del green
+    sudo ip netns del yellow
+
+    sudo ip link delete rveth-out
+    sudo ip link delete gveth-out
+    sudo ip link delete yveth-out
+
+## Remove virtual-bridge
+    sudo ip link del virtual-bridge type bridge
+    sudo iptables -F POSTROUTING -t nat
+
+
 
